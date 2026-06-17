@@ -9,7 +9,7 @@ def start_inline_buttons():
                 InlineKeyboardButton(text="🍔 Menyu", callback_data="main_menu")
             ],
             [
-                InlineKeyboardButton(text="🛒 Savatcha", callback_data="show_cart"),
+                InlineKeyboardButton(text="🛒 Savatchamm)", callback_data="show_cart"),
                 InlineKeyboardButton(text="ℹ️ Biz haqimizda", callback_data="about_us")
             ]
         ]
@@ -58,7 +58,7 @@ def categories_inline_buttons(categories: list):
     builder = InlineKeyboardBuilder()
     
     for cat_id, cat_name in categories:
-        builder.add(InlineKeyboardButton(text=f"📁 {cat_name}", callback_data=f"category_{cat_id}"))
+        builder.add(InlineKeyboardButton(text=f"{cat_name}", callback_data=f"category_{cat_id}"))
     
     # Tugmalarni 2 tadan qilib tartiblaymiz
     builder.adjust(2)

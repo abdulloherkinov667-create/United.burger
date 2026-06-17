@@ -51,7 +51,7 @@ async def process_category_image(message: types.Message, state: FSMContext):
     photo_id = message.photo[-1].file_id
     user_data = await state.get_data()
     cat_name = user_data.get("category_name")
-    muvaffaqiyatli = await insert_category(name=cat_name, image_path=photo_id)
+    muvaffaqiyatli = insert_category(name=cat_name, image_path=photo_id)
 
     if muvaffaqiyatli:
         await message.answer(
@@ -138,7 +138,8 @@ async def process_image(message: types.Message, state: FSMContext):
     
     categories = get_all_categories()
     kb = []
-    for c_id, c_name in categories:
+    # Support categories rows with 2 or more columns (id, name, [image_id])
+    for c_id, c_name, *rest in categories:
         kb.append([InlineKeyboardButton(text=f"📁 {c_name}", callback_data=f"save_cat_{c_id}")])
     
     kb.append([InlineKeyboardButton(text="❌ Bekor qilish", callback_data="cancel_product_add")])

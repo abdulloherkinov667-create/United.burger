@@ -1,16 +1,9 @@
 import sqlite3
 
-
 DB_PATH = "bot_database.db"
-
 
 def get_conn():
     return sqlite3.connect(DB_PATH)
-
-
-# ═══════════════════════════════════════════════
-#                  JADVALLAR
-# ═══════════════════════════════════════════════
 
 def create_tables():
     conn = get_conn()
@@ -32,7 +25,8 @@ def create_tables():
 
         CREATE TABLE IF NOT EXISTS categories (
             id    INTEGER PRIMARY KEY AUTOINCREMENT,
-            name  TEXT NOT NULL UNIQUE
+            name  TEXT NOT NULL UNIQUE,
+            image_id TEXT
         );
 
         CREATE TABLE IF NOT EXISTS products (
@@ -47,12 +41,19 @@ def create_tables():
     """)
     
     conn.commit()
+    try:
+        cursor.execute("PRAGMA table_info(categories)")
+        cols = [row[1] for row in cursor.fetchall()]
+        if 'image_id' not in cols:
+            cursor.execute("ALTER TABLE categories ADD COLUMN image_id TEXT")
+            conn.commit()
+    except Exception:
+        pass
     conn.close()
     print("✅ Barcha jadvallar tayyor")
 
-
 # ═══════════════════════════════════════════════
-#                  USERS
+#                   USERS
 # ═══════════════════════════════════════════════
 
 def insert_user(chat_id, first_name, username, language_code, is_bot, created_at):
@@ -73,7 +74,6 @@ def insert_user(chat_id, first_name, username, language_code, is_bot, created_at
     finally:
         conn.close()
 
-
 def get_all_users():
     conn = get_conn()
     cursor = conn.cursor()
@@ -81,7 +81,6 @@ def get_all_users():
     rows = cursor.fetchall()
     conn.close()
     return rows
-
 
 def get_user_count():
     conn = get_conn()
@@ -91,7 +90,6 @@ def get_user_count():
     conn.close()
     return count
 
-
 def block_user(chat_id):
     conn = get_conn()
     cursor = conn.cursor()
@@ -99,16 +97,18 @@ def block_user(chat_id):
     conn.commit()
     conn.close()
 
-
 # ═══════════════════════════════════════════════
 #                KATEGORIYALAR
 # ═══════════════════════════════════════════════
 
-def insert_category(name: str):
+def insert_category(name: str, image_path: str = None):
     conn = get_conn()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO categories (name) VALUES (?)", (name,))
+        cursor.execute(
+            "INSERT INTO categories (name, image_id) VALUES (?, ?)",
+            (name, image_path)
+        )
         conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -116,7 +116,7 @@ def insert_category(name: str):
     finally:
         conn.close()
 
-
+# 🛠 ESKI HOLATIGA QAYTARILDI: Bu funksiya faqat 2 ta ustun qaytaradi (maxsulot.py xato bermaydi)
 def get_all_categories():
     conn = get_conn()
     cursor = conn.cursor()
@@ -125,6 +125,22 @@ def get_all_categories():
     conn.close()
     return rows
 
+# ✨ YANGI QO'SHILDI: Bu esa foydalanuvchilar menyusi (rasmli bo'lim) uchun ishlaydi
+def get_all_categories_with_images():
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, image_id FROM categories ORDER BY id")
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_category_by_id(category_id: int):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, image_id FROM categories WHERE id = ?", (category_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
 
 def delete_category(category_id: int):
     conn = get_conn()
@@ -139,9 +155,8 @@ def delete_category(category_id: int):
     finally:
         conn.close()
 
-
 # ═══════════════════════════════════════════════
-#                 MAHSULOTLAR
+#                  MAHSULOTLAR
 # ═══════════════════════════════════════════════
 
 def insert_product(category_id: int, name: str, price: str, description: str, image_id: str):
@@ -162,7 +177,6 @@ def insert_product(category_id: int, name: str, price: str, description: str, im
     finally:
         conn.close()
 
-
 def get_all_products():
     conn = get_conn()
     cursor = conn.cursor()
@@ -175,7 +189,6 @@ def get_all_products():
     rows = cursor.fetchall()
     conn.close()
     return rows
-
 
 def get_products_by_category(category_id: int):
     conn = get_conn()
@@ -194,7 +207,6 @@ def get_products_by_category(category_id: int):
     finally:
         conn.close()
 
-
 def get_product_by_id(product_id: int):
     conn = get_conn()
     cursor = conn.cursor()
@@ -211,7 +223,6 @@ def get_product_by_id(product_id: int):
     finally:
         conn.close()
 
-
 def delete_product(product_id: int):
     conn = get_conn()
     cursor = conn.cursor()
@@ -225,9 +236,7 @@ def delete_product(product_id: int):
     finally:
         conn.close()
 
-
 def get_products_with_categories():
-    """Operator uchun — barcha mahsulotlar kategoriya nomi bilan"""
     conn = get_conn()
     cursor = conn.cursor()
     cursor.execute("""

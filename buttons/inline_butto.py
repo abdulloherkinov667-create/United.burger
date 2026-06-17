@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def start_inline_buttons():
@@ -22,7 +23,6 @@ def operator_inline_buttons():
             [
                 InlineKeyboardButton(text="📋 Yangi buyurtmalar", callback_data="view_orders")
             ],
-            # Siz aytgan asosiy maxsulotlar tugmasi
             [
                 InlineKeyboardButton(text="📦 Mahsulot", callback_data="manage_products")
             ],
@@ -53,37 +53,43 @@ def operator_products_inline_buttons():
     return keyboard
 
 
+# KATEGORIYALAR: Har qatorda 2 tadan chiroyli joylashadi
 def categories_inline_buttons(categories: list):
-    inline_keyboard = []
+    builder = InlineKeyboardBuilder()
     
     for cat_id, cat_name in categories:
-        row = [InlineKeyboardButton(text=cat_name, callback_data=f"category_{cat_id}")]
-        inline_keyboard.append(row)
-        
-    inline_keyboard.append([
-        InlineKeyboardButton(text="⬅️ Ortga", callback_data="back_to_start")
-    ])
+        builder.add(InlineKeyboardButton(text=f"📁 {cat_name}", callback_data=f"category_{cat_id}"))
     
-    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+    # Tugmalarni 2 tadan qilib tartiblaymiz
+    builder.adjust(2)
+    
+    # Oxiriga Ortga tugmasini alohida qatorda qo'shamiz
+    builder.row(InlineKeyboardButton(text="⬅️ Ortga", callback_data="back_to_start"))
+    
+    return builder.as_markup()
 
 
 def products_inline_buttons(products: list):
-    inline_keyboard = []
+    builder = InlineKeyboardBuilder()
     
     for prod_id, prod_name in products:
-        row = [InlineKeyboardButton(text=prod_name, callback_data=f"product_{prod_id}")]
-        inline_keyboard.append(row)
+        builder.add(InlineKeyboardButton(text=f"🛍 {prod_name}", callback_data=f"product_{prod_id}"))
         
-    inline_keyboard.append([
-        InlineKeyboardButton(text="⬅️ Kategoriyalarga qaytish", callback_data="main_menu")
-    ])
+    builder.adjust(2)
     
-    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+    builder.row(InlineKeyboardButton(text="⬅️ Kategoriyalarga qaytish", callback_data="main_menu"))
+    
+    return builder.as_markup()
 
 
 def product_detail_inline_buttons(category_id: int, quantity: int = 1):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
+            [ 
+                InlineKeyboardButton(text="-", callback_data="minus"),
+                InlineKeyboardButton(text="1", callback_data="son"),
+                InlineKeyboardButton(text="+", callback_data="plus"),
+            ],
             [
                 InlineKeyboardButton(text="📥 Savatga qo'shish", callback_data="add_to_cart")
             ],

@@ -9,6 +9,7 @@ from buttons.inline_butto import (
 )
 from database import (
     get_all_categories,
+    get_category_by_id,
     get_products_by_category,
     get_product_by_id,
 )
@@ -29,9 +30,18 @@ async def show_categories(callback: CallbackQuery):
     except Exception:
         pass
 
+    # Menyu bosilganda chiqadigan qiziqarli matn
+    welcome_text = (
+        "🍔 *Ishtahangiz qo'zg'aldimi?* 🍔\n\n"
+        "Bizning *Premium Katalog* sizni mazali taomlar bilan kutmoqda!\n"
+        "Har bir mahsulot sevgi va did bilan tayyorlanadi 😋\n\n"
+        "👇 *Quyidan o'zingizga yoqqan kategoriyani tanlang:*"
+    )
+
     await callback.message.answer(
-        text="Kategoriyani tanlang:",
+        text=welcome_text,
         reply_markup=categories_inline_buttons(categories),
+        parse_mode="Markdown"
     )
     await callback.answer()
 
@@ -50,10 +60,37 @@ async def show_category_products(callback: CallbackQuery):
     except Exception:
         pass
 
-    await callback.message.answer(
-        text="Mahsulotni tanlang:",
-        reply_markup=products_inline_buttons(products),
+    # Kategoriya rasmini bazadan olamiz
+    category = get_category_by_id(category_id)
+    category_image = category[2] if category and category[2] else None
+
+    caption_text = (
+        "✨ *Kategoriya ichidagi mahsulotlar ro'yxati:*\n\n"
+        "👇 Quyidagi tugmalardan birini tanlang:"
     )
+
+    if category_image:
+        try:
+            await callback.message.answer_photo(
+                photo=category_image,
+                caption=caption_text,
+                reply_markup=products_inline_buttons(products),
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            print(f"Kategoriya rasmi xato: {e}")
+            await callback.message.answer(
+                text=caption_text,
+                reply_markup=products_inline_buttons(products),
+                parse_mode="Markdown"
+            )
+    else:
+        await callback.message.answer(
+            text=caption_text,
+            reply_markup=products_inline_buttons(products),
+            parse_mode="Markdown"
+        )
+
     await callback.answer()
 
 
@@ -68,23 +105,37 @@ async def show_product_detail(callback: CallbackQuery):
 
     _, category_id, name, price, description, image_id = product
 
+    try:
+        price_formatted = f"{int(price):,}"
+    except (ValueError, TypeError):
+        price_formatted = str(price)
+
     caption = (
-        f"*{name}*\n\n"
-        f"💰 Narxi: *{price} so'm*\n\n"
-        f"📝 {description}"
-    )
+            f"📝 *Batafsil:* {description}\n\n"
+            f"👑 *Nomi:* *{name}*\n"
+            f"💰 *Narxi:* *{price_formatted} so'm*\n"            
+        )
 
     try:
         await callback.message.delete()
     except Exception:
         pass
 
-    await callback.message.answer_photo(
-        photo=image_id,
-        caption=caption,
-        reply_markup=product_detail_inline_buttons(category_id=category_id),
-        parse_mode="Markdown",
-    )
+    try:
+        await callback.message.answer_photo(
+            photo=image_id,
+            caption=caption,
+            reply_markup=product_detail_inline_buttons(category_id=category_id),
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        print(f"Mahsulot rasmi xato: {e}")
+        await callback.message.answer(
+            text=caption,
+            reply_markup=product_detail_inline_buttons(category_id=category_id),
+            parse_mode="Markdown",
+        )
+
     await callback.answer()
 
 
@@ -96,7 +147,8 @@ async def back_to_start_handler(callback: CallbackQuery):
         pass
 
     await callback.message.answer(
-        text="Asosiy menyu:",
+        text="🏠 *Asosiy menyuga qaytdingiz:*",
         reply_markup=start_inline_buttons(),
+        parse_mode="Markdown"
     )
     await callback.answer()

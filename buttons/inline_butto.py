@@ -73,11 +73,11 @@ def products_inline_buttons(products: list):
     builder = InlineKeyboardBuilder()
     
     for prod_id, prod_name in products:
-        builder.add(InlineKeyboardButton(text=f"🛍 {prod_name}", callback_data=f"product_{prod_id}"))
+        builder.add(InlineKeyboardButton(text=f"{prod_name}", callback_data=f"product_{prod_id}"))
         
     builder.adjust(2)
     
-    builder.row(InlineKeyboardButton(text="⬅️ Kategoriyalarga qaytish", callback_data="main_menu"))
+    builder.row(InlineKeyboardButton(text="⬅️ Ortga", callback_data="main_menu"))
     
     return builder.as_markup()
 

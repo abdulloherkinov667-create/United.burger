@@ -1,3 +1,5 @@
+from email import message
+
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
@@ -147,7 +149,11 @@ async def back_to_start_handler(callback: CallbackQuery):
         pass
 
     await callback.message.answer(
-        text="🏠 *Asosiy menyuga qaytdingiz:*",
+        text=f"Assalomu alaykum, {callback.from_user.first_name}! 👋\n\n"
+            f"United Burger do'konidan buyurtma berish botiga xush kelibsiz! "
+            f"Och qoldingizmi? Unda darhol menyu bilan tanishing! 👇\n\n"
+            f"🕒 Ish vaqtimiz: 10:00 dan 03:00 gacha\n"
+            f"📍 Manzil: Toshkent shahar (yetkazib berish xizmati mavjud)",
         reply_markup=start_inline_buttons(),
         parse_mode="Markdown"
     )
